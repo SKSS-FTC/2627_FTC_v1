@@ -67,7 +67,6 @@ import java.util.concurrent.TimeUnit;
  */
 
 @TeleOp(name = "AprilTag", group = "Common")
-@Disabled
 public class AprilTag extends LinearOpMode {
     // Adjust these numbers to suit your robot.
 
@@ -111,10 +110,10 @@ public class AprilTag extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must match the names assigned during the robot configuration.
         // step (using the FTC Robot Controller app on the phone).
-        leftUp = hardwareMap.get(DcMotor.class, "front_left_drive");
-        rightUp = hardwareMap.get(DcMotor.class, "front_right_drive");
-        leftDown = hardwareMap.get(DcMotor.class, "back_left_drive");
-        rightDown = hardwareMap.get(DcMotor.class, "back_right_drive");
+        leftUp = hardwareMap.get(DcMotor.class, "leftUp");
+        rightUp = hardwareMap.get(DcMotor.class, "rightUp");
+        leftDown = hardwareMap.get(DcMotor.class, "leftDown");
+        rightDown = hardwareMap.get(DcMotor.class, "rightDown");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
