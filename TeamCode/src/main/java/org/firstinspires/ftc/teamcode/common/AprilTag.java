@@ -143,6 +143,14 @@ public class AprilTag extends LinearOpMode {
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                telemetry.addLine(String.format("ID", singleDet.id, singleDet.metadata.name));
+                telemetry.addData("Range", "%5.2f inch", detection.ftcPose.range);
+                telemetry.addData("Bearing", "%5.2f inch", detection.ftcPose.bearing);
+                telemetry.addData("X", "%5.2f inch", detection.ftcPose.x);
+                telemetry.addData("Y", "%5.2f inch", detection.ftcPose.y);
+                telemetry.addData("Yaw", "%5.2f inch", detection.ftcPose.yaw);
 
 
             }
