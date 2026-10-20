@@ -4,17 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import android.util.Size;
 
@@ -123,11 +116,11 @@ public class AprilTag extends LinearOpMode {
         rightUp.setDirection(DcMotor.Direction.FORWARD);
         rightDown.setDirection(DcMotor.Direction.FORWARD);
 
+        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
         myVisionPortalBuilder = new VisionPortal.Builder();
         myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
         myVisionPortalBuilder.addProcessor(aprilTag);
-        myVisionPortalBuilder.setCameraResolution(new Size(720, 480));
-        myVisionPortalBuilder.enableLiveView(true);
+        myVisionPortalBuilder.setCameraResolution(new Size(640, 480));
         myVisionPortal = myVisionPortalBuilder.build();
 
         // Wait for driver to press start
@@ -135,25 +128,36 @@ public class AprilTag extends LinearOpMode {
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
         waitForStart();
-
         while (opModeIsActive()) {
             targetFound = false;
 
-            // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
             for (AprilTagDetection detection : currentDetections) {
-                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+                // Skip tags with no pose data
+                if (detection.ftcPose == null) continue;
 
-                telemetry.addLine(String.format("ID", singleDet.id, singleDet.metadata.name));
-                telemetry.addData("Range", "%5.2f inch", detection.ftcPose.range);
-                telemetry.addData("Bearing", "%5.2f inch", detection.ftcPose.bearing);
-                telemetry.addData("X", "%5.2f inch", detection.ftcPose.x);
-                telemetry.addData("Y", "%5.2f inch", detection.ftcPose.y);
-                telemetry.addData("Yaw", "%5.2f inch", detection.ftcPose.yaw);
+                // Filter by desired tag ID (-1 = any)
+                if (DESIRED_TAG_ID != -1 && detection.id != DESIRED_TAG_ID) continue;
 
+                targetFound = true;
+                targetID      = detection.id;
+                targetRange   = detection.ftcPose.range;
+                targetBearing = detection.ftcPose.bearing;
+                targetYaw     = detection.ftcPose.yaw;
 
+                telemetry.addLine(String.format("Target Found! ID: %d", detection.id));
+                telemetry.addData("Range",   "%5.2f inch", detection.ftcPose.range);
+                telemetry.addData("Bearing", "%5.2f Deg",  detection.ftcPose.bearing);
+                telemetry.addData("X",       "%5.2f inch", detection.ftcPose.x);
+                telemetry.addData("Y",       "%5.2f inch", detection.ftcPose.y);
+                telemetry.addData("Yaw",     "%5.2f Deg",  detection.ftcPose.yaw);
+                break; // stop at first matching tag
             }
+
+            telemetry.addData("Detections", currentDetections.size());
+            telemetry.addData("Target found", targetFound);
+            telemetry.update();
         }
     }
-
 }
