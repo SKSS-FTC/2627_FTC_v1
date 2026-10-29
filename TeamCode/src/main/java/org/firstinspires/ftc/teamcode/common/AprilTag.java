@@ -90,11 +90,8 @@ public class AprilTag extends LinearOpMode {
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
 
     private boolean targetFound = false;    // Set to true when an AprilTag/Cluster target is detected
-    private String targetName = "none";
-    private int targetID = 0;
-    private double targetRange = 0;
-    private double targetBearing = 0;
-    private double targetYaw = 0;
+    private double cameraAngle = Math.toRadians(0);
+
 
     @Override
     public void runOpMode() {
@@ -140,53 +137,26 @@ public class AprilTag extends LinearOpMode {
                 if (detection instanceof AprilTagSingleDetection) {
                     AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
 
-                    if (singleDet.metadata != null && singleDet.id == DESIRED_TAG_ID) {
-                        telemetry.addLine(String.format("Target Found! ID: %d", singleDet.id));
-                        telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                        telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                        telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-                    } else if (singleDet.metadata != null){
-                        telemetry.addLine(String.format("\n==== (ID %d) %s", singleDet.id, singleDet.metadata.name));
-                    }else {
-                        telemetry.addLine(String.format("\n==== (ID %d) Unknown", singleDet.id));
-                        telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", singleDet.center.x, singleDet.center.y));
+                    if (detection.ftcPose == null) {
+                        telemetry.addData("Tag " + singleDet.id, "detected, but no pose yet");
+                        continue;
                     }
+
+                    double x = detection.ftcPose.x;
+                    double y = Math.cos(detection.ftcPose.y) - Math.sin(detection.ftcPose.z);
+                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+                    double angle = Math.atan(x / y);
+                    double id = singleDet.id;
+                    telemetry.addData("id", id);
+                    telemetry.addData("x", x);
+                    telemetry.addData("y", y);
+                    telemetry.addData("distance", distance);
+                    telemetry.addData("angle", angle);
                 } else {
                     AprilTagClusterDetection clusterDet = (AprilTagClusterDetection) detection;
-                    telemetry.addLine(String.format("\n==== Tag Cluster (%s)", clusterDet.metadata.name));
-                    telemetry.addLine(String.format("Percent tags found: %d", clusterDet.percentClusterFound));
-                    telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                    telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
                 }
-            }   // end for() loop
-//            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-//
-//            for (AprilTagDetection detection : currentDetections) {
-//                // Skip tags with no pose data
-//                if (detection.ftcPose == null) continue;
-//
-//                // Filter by desired tag ID (-1 = any)
-//                if (DESIRED_TAG_ID != -1 && detection.id != DESIRED_TAG_ID) continue;
-//
-//                targetFound = true;
-//                targetID      = detection.id;
-//                targetRange   = detection.ftcPose.range;
-//                targetBearing = detection.ftcPose.bearing;
-//                targetYaw     = detection.ftcPose.yaw;
-//
-//                telemetry.addLine(String.format("Target Found! ID: %d", detection.id));
-//                telemetry.addData("Range",   "%5.2f inch", detection.ftcPose.range);
-//                telemetry.addData("Bearing", "%5.2f Deg",  detection.ftcPose.bearing);
-//                telemetry.addData("X",       "%5.2f inch", detection.ftcPose.x);
-//                telemetry.addData("Y",       "%5.2f inch", detection.ftcPose.y);
-//                telemetry.addData("Yaw",     "%5.2f Deg",  detection.ftcPose.yaw);
-//                break; // stop at first matching tag
-//            }
-//
-//            telemetry.addData("Detections", currentDetections.size());
-//            telemetry.addData("Target found", targetFound);
-//            telemetry.update();
+            }
+            telemetry.update();
         }
     }
 }
