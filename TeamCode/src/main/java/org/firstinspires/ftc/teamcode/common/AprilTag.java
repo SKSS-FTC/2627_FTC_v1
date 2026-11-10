@@ -137,23 +137,35 @@ public class AprilTag extends LinearOpMode {
                 if (detection instanceof AprilTagSingleDetection) {
                     AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
 
+                    if (singleDet.metadata == null) {
+                        telemetry.addData("Tag " + singleDet.id, "No metadata (size unknown in library)");
+                        continue;
+                    }
+
                     if (detection.ftcPose == null) {
                         telemetry.addData("Tag " + singleDet.id, "detected, but no pose yet");
                         continue;
                     }
 
-                    double x = detection.ftcPose.x;
-                    double y = Math.cos(detection.ftcPose.y) - Math.sin(detection.ftcPose.z);
-                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-                    double angle = Math.atan(x / y);
-                    double id = singleDet.id;
-                    telemetry.addData("id", id);
-                    telemetry.addData("x", x);
-                    telemetry.addData("y", y);
-                    telemetry.addData("distance", distance);
-                    telemetry.addData("angle", angle);
-                } else {
+                } else if (detection instanceof AprilTagClusterDetection) {
                     AprilTagClusterDetection clusterDet = (AprilTagClusterDetection) detection;
+
+                    if (clusterDet.ftcPose != null) {
+                        double x = detection.ftcPose.x;
+                        double y = (Math.cos(detection.ftcPose.y) - Math.sin(detection.ftcPose.z)) * -1;
+                        double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+                        double angle = Math.atan(x / y);
+                        String name = clusterDet.metadata.name;
+
+                        telemetry.addData("Cluster", "Range: %.1f in", clusterDet.ftcPose.range);
+                        telemetry.addData("name", name);
+                        telemetry.addData("x", x);
+                        telemetry.addData("y", y);
+                        telemetry.addData("distance", distance);
+                        telemetry.addData("angle", angle);
+                        telemetry.update();
+
+                    }
                 }
             }
             telemetry.update();
